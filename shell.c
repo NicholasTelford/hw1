@@ -146,12 +146,12 @@ int shell (int argc, char *argv[]) {
     if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
     else {
 	pid_t child;
+	char *env[] = {"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:", NULL};
 	fflush(stdout);
 	if((child = fork()) == 0) {
 		int status;
 		pid_t pid = waitpid(child, &status, 0);
-		execvp(t[0], t);
-		fprintf(stdout, "%s: ", str);
+		execvpe(t[0], t, env);
 		fflush(stdout);
 	}
 	
