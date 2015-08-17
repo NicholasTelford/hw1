@@ -155,6 +155,7 @@ int shell (int argc, char *argv[]) {
 		pid_t pid = waitpid(child, &status, 0);
 		execvpe(t[0], t, envar);
 		fflush(stdout);
+
 	}
 	
     }
