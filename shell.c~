@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #define FALSE 0
 #define TRUE 1
@@ -126,7 +127,10 @@ process* create_process(char* inputString)
 
 int shell (int argc, char *argv[]) {
   char *s = malloc(INPUT_STRING_SIZE+1);			/* user input string */
-  tok_t *t;			/* tokens parsed from input */
+  tok_t *t;
+  int fd;
+  int i;
+  int j;			/* tokens parsed from input */
   int lineNum = 0;
   int fundex = -1;
   pid_t pid = getpid();		/* get current processes PID */
@@ -142,6 +146,8 @@ int shell (int argc, char *argv[]) {
   fprintf(stdout, "%s: ", str);
   while ((s = freadln(stdin))){
     t = getToks(s); /* break the line into tokens */
+    i = isDirectTok(t, ">");
+    j = isDirectTok(t, "<");
     fundex = lookup(t[0]); /* Is first token a shell literal */
     if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
     else {
@@ -149,12 +155,27 @@ int shell (int argc, char *argv[]) {
 	char *envar;
 	char *env = "test";
 	envar = getenv(env);
-	fflush(stdout);
+	
 	if((child = fork()) == 0) {
 		int status;
 		pid_t pid = waitpid(child, &status, 0);
+		fflush(stdout);
+		if(i == 1) {
+			fd = open(t[2], O_WRONLY | O_TRUNC | O_CREAT, 0644);
+			write(fd, t[0], strlen(t[0]));
+			dup2(fd, 1);
+			close(fd);
+                }
+		if(j == 1) {
+			fd = open(t[2], O_RDONLY);
+			dup2(fd, 0);
+			close(fd);
+	 }
+		
 		execvpe(t[0], t, envar);
 		fflush(stdout);
+		
+
 	}
 	
     }
