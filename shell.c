@@ -92,7 +92,17 @@ void init_shell()
     while(tcgetpgrp (shell_terminal) != (shell_pgid = getpgrp()))
       kill( - shell_pgid, SIGTTIN);
 
+    signal(SIGINT, SIG_IGN);
+    signal(SIGSTOP, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
+
     shell_pgid = getpid();
+
     /* Put shell in its own process group */
     if(setpgid(shell_pgid, shell_pgid) < 0){
       perror("Couldn't put the shell in its own process group");
@@ -175,6 +185,7 @@ int shell (int argc, char *argv[]) {
 	envar = getenv(env);
 	process* p1 = create_process(argc, argv, pid);
         add_process(p1);
+	setpgid(pid,pid);
 	if((child = fork()) == 0) {
 		int status;
 		pid_t pid = waitpid(child, &status, 0);
@@ -190,13 +201,17 @@ int shell (int argc, char *argv[]) {
 			dup2(fd, 0);
 			close(fd);
 	 }
-		
-		execvpe(t[0], t, envar);
-		fflush(stdout);
-		
+		p1->pid = getpid();
 
+		execvpe(t[0], t, envar);
+		launch_process(p1);
+		
+		
+		fflush(stdout);
+
+		
 	}
-	
+		
     }
     fprintf(stdout, "%s: ", str);
   }
