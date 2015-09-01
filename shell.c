@@ -111,7 +111,7 @@ void init_shell()
  */
 void add_process(process* p)
 {
-  /** YOUR CODE HERE */
+
 }
 
 /**
@@ -119,8 +119,17 @@ void add_process(process* p)
  */
 process* create_process(char* inputString)
 {
-  /** YOUR CODE HERE */
-  return NULL;
+  process *p1 = malloc(sizeof(process));
+  p1->stdin = 0;
+  p1->stdout = 1;
+  p1->stderr = 2;
+
+  p1->completed = 0;
+  p1->stopped = 0;
+  p1->background = 0;
+  p1->next = NULL;
+  p1->prev = NULL;
+  return p1;
 }
 
 
@@ -155,7 +164,7 @@ int shell (int argc, char *argv[]) {
 	char *envar;
 	char *env = "test";
 	envar = getenv(env);
-	
+	process* p1 = create_process(s);
 	if((child = fork()) == 0) {
 		int status;
 		pid_t pid = waitpid(child, &status, 0);
